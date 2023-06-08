@@ -8,6 +8,10 @@ import './App.css';
  */
 interface IState {
   data: ServerRespond[],
+  // We add a new state property, showGraph, to indicate whether the Graph react element should be visible or not.
+  // : Interfaces help define the values a certain entity must have. In this case, whenever a type of IState is used, our
+  // application knows it should always have data and showGraph as properties in order to be valid
+  showGraph: boolean,
 }
 
 /**
@@ -22,6 +26,7 @@ class App extends Component<{}, IState> {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
       data: [],
+      showGraph: false,
     };
   }
 
@@ -29,19 +34,31 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+    if(this.state.showGraph) {
+      return (<Graph data={this.state.data}/>)
+    }
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
+    let x = 0; 
+    const interval = setInterval(() => {
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
       // Update the state by creating a new array of data that consists of
       // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
+      this.setState({
+        data: serverResponds,
+        showGraph: true,
+      });
     });
-  }
+    x++;
+    if(x > 1000) {
+      clearInterval(interval);
+    }
+  }, 100); 
+}
 
   /**
    * Render the App react component
